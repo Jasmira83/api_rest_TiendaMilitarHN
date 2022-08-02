@@ -27,7 +27,7 @@ function verifyToken(req, res, next){
 
 
 //MOSTRAR METODOS DE PAGO
-router_v.get('/mostrarmetodospagosvent',  verifyToken,(req,res) =>{
+/*router_v.get('/mostrarmetodospagosvent',  verifyToken,(req,res) =>{
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -42,6 +42,30 @@ router_v.get('/mostrarmetodospagosvent',  verifyToken,(req,res) =>{
        }
     });
 
+});*/
+
+router_v.get('/mostrarmetodospagosvent', verifyToken, (req,res) =>{
+    jwt.verify(req.token, 'secretkey', (error, authData)=>{
+        if (error) {
+        res.send("ACCESO RESTRINGIDO)");
+        } else {
+            try {
+        
+                const { PI_COD_MET_PAGO, PV_NOMBRE } = req.params;
+                const sql = 'call TIENDASM.SELECT_MET_PAGOS();;';
+             mysqlConnection.query(sql, [PI_COD_MET_PAGO, PV_NOMBRE], (error, results)=>{
+                if (error) throw error;
+                if (results.length > 0) {
+                res.json(results);
+                } else {
+                    res.send("SIN RESULTADOS")
+                }
+               });  
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }); 
 });
 
 
@@ -86,7 +110,7 @@ router_v.post("/insertarmetpagos/:insertarmetpago", verifyToken , (req,res)=>{
 
             const { PV_NOMBRE } = req.body;
                console.log(req.body)
-            const query ='CALL INSERTAR_MET_PAGO(?);';
+            const query ='CALL TIENDASM.INSERTAR_MET_PAGO(?);';
         mysqlConnection.query(query, [PV_NOMBRE],( err, rows, fields)=> {
            if (!err){
             res.json({status:'METODO DE PAGO INGRESADO'});
@@ -105,12 +129,12 @@ router_v.post("/insertarmetpagos/:insertarmetpago", verifyToken , (req,res)=>{
 
 // ELIMINAR METODO DE PAGO CON EL MÉTODO 
 
-router_v.delete("/Eliminarmetpago/:COD_MET_PAGO", (req, res) => {
+router_v.delete("/Eliminarmetpago/:COD_MET_PAGO", verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
         } else {
-            const {COD_MET_PAGO} = req.body;
+            const {COD_MET_PAGO} = req.params;
                   console.log(req.body)
             const sql = 'CALL TIENDASM.DELETE_MET_PAGO (?);';
      
@@ -130,7 +154,7 @@ router_v.delete("/Eliminarmetpago/:COD_MET_PAGO", (req, res) => {
 
 
 //FUNCIONA UPDATE METODO DE PAGO
-router_v.put("/Updatemetpago/:PI_COD_MET_PAGO", (req, res) => {
+router_v.put("/Updatemetpago/:PI_COD_MET_PAGO", verifyToken,(req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -141,7 +165,7 @@ router_v.put("/Updatemetpago/:PI_COD_MET_PAGO", (req, res) => {
             const query  = 'call TIENDASM.UPDATE_MET_PAGO(?,?);';
              mysqlConnection.query(query, [PI_COD_MET_PAGO, PV_NOMBRE], (err, rows, fields) => {
                if (!err){
-                  res.json({Status: 'USUARIO ACTUALIZADO...'});
+                  res.json({Status: 'METODO DE PAGO ACTUALIZADO...'});
                 } else{
                     console.log(error);//("NO SE ENCONTRÓ NINGÚN DATO.");
                 }
@@ -190,9 +214,9 @@ router_v.get('/MostrarVenta/:COD_VENTA', verifyToken, (req,res) =>{
 });
 
 
-//SELECIONAR VENTA_DETALLEVENTA
+//SELECIONAR VENTA_DETALLEVENTA (NO SE USARA, No es necesario)
 
-router_v.get('/MostrarunoVenta/:COD_VENTA', verifyToken, (req,res) =>{
+/*router_v.get('/MostrarunoVenta/:COD_VENTA', verifyToken, (req,res) =>{
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -214,20 +238,20 @@ router_v.get('/MostrarunoVenta/:COD_VENTA', verifyToken, (req,res) =>{
             }
         }
     }); 
-});
+});*/
 
 
 //INSERTAR VENTA_DETALLESVENTA
 
-router_v.post("/Insertarventadetallesvent/:Ventadetallesvnta", verifyToken , (req,res)=>{
+router_v.post("/Insertarventadetallesvent", verifyToken , (req,res)=>{
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
           res.send("ACCESO RESTRINGIDO)");
           } else {
-            const { PI_COD_CLIENTE, PI_COD_USUARIO, FECHA_VENTA,PI_NUM_FACTURA,PI_COD_ARTICULO,PI_COD_CANTIDAD,PD_TOTAL,PD_SUB_TOTAL,PD_IMPUESTO,PD_DESCUENTO,PD_TOT_PAGAR,PI_COD_MET_PAGO  } = req.body;
+            const { PI_COD_CLIENTE, PI_COD_USUARIO, PD_FECHA,PI_NUM_FACTURA,PI_COD_ARTICULO,PI_COD_CANTIDAD,PD_TOTAL,PD_SUB_TOTAL,PD_IMPUESTO,PD_DESCUENTO,PD_TOT_PAGAR,PI_COD_MET_PAGO  } = req.body;
                 console.log(req.body)
-            const query ='call TIENDASM.INSERTAAR_VENTA_DETALLESVENTA(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
-            mysqlConnection.query(query, [PI_COD_CLIENTE, PI_COD_USUARIO, FECHA_VENTA,PI_NUM_FACTURA,PI_COD_ARTICULO,PI_COD_CANTIDAD,PD_TOTAL,PD_SUB_TOTAL,PD_IMPUESTO,PD_DESCUENTO,PD_TOT_PAGAR,PI_COD_MET_PAGO ],( err, rows, fields)=> {
+            const query ='call TIENDASM.INSERTAAR_VENTA_DETALLESVENTA(?,?,?,?,?,?,?,?,?,?,?,?);';
+            mysqlConnection.query(query, [PI_COD_CLIENTE, PI_COD_USUARIO, PD_FECHA,PI_NUM_FACTURA,PI_COD_ARTICULO,PI_COD_CANTIDAD,PD_TOTAL,PD_SUB_TOTAL,PD_IMPUESTO,PD_DESCUENTO,PD_TOT_PAGAR,PI_COD_MET_PAGO ],( err, rows, fields)=> {
               if (!err){
                   res.json({status:'VENTA REALIZADO'});
               }else{
@@ -243,15 +267,15 @@ router_v.post("/Insertarventadetallesvent/:Ventadetallesvnta", verifyToken , (re
 
 
 // ELIMINAR VENTA_DETALLEVENTA CON EL MÉTODO DELETE CON TOKEN
-router_v.delete("/Eliminarventa/:PI_COD_VENTA", (req, res) => {
+router_v.delete("/Eliminarventa/:COD_VENTA", verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
         } else {
-            const {PI_COD_VENTA } = req.params;
+            const {COD_VENTA } = req.params;
             const sql = 'call TIENDASM.DELETE_VENTA(?);';
           
-            mysqlConnection.query(sql, [PI_COD_VENTA], (err, results)=>{
+            mysqlConnection.query(sql, [COD_VENTA], (err, results)=>{
              if (!err){
                  res.json({Status: 'VENTA ELIMINADA CORRECTAMENTE'});
              } else {

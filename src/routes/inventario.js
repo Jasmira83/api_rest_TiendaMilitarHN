@@ -53,7 +53,7 @@ function verifyToken(req, res, next){
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
         } else {
-            mysqlConnection.query("call SELECT_CAT_ARTICULOS", (err, rows, fields) => {
+            mysqlConnection.query("call TIENDASM.SELECT_CAT_ARTICULOS", (err, rows, fields) => {
                 if (!err) res.send(rows[0]);
                 else console.log(err);
             })
@@ -64,14 +64,14 @@ function verifyToken(req, res, next){
 
 // SELECIONAR UNA CATEGORIA                  BUENOOOOO!
 
-  router_i.get("/SELECT_CATEGORIA" , verifyToken, (req, res) => {
+  /*router_i.get("/SELECT_CATEGORIA/:COD_CATEGORIA" , verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
            res.send("ACCESO RESTRINGIDO)");
         } else {
            try {
             const { COD_CATEGORIA } = req.body;
-            const consulta = `call SELECT_CAT_ARTICULO('${COD_CATEGORIA}')`;
+            const consulta = `call TIENDASM.SELECT_CAT_ARTICULO('${COD_CATEGORIA}')`;
             mysqlConnection.query(consulta, (error, results) => {
                 if (error) throw error;
                 if (results.length > 0) {
@@ -90,7 +90,37 @@ function verifyToken(req, res, next){
     });
 
  
+});*/
+
+router_i.get("/SELECT_CATEGORIA/:COD_CATEGORIA", verifyToken, (req, res) =>{
+  jwt.verify(req.token, 'secretkey', (error, authData)=>{
+      if (error) {
+         res.send("ACCESO RESTRINGIDO)");
+      } else {
+
+        try {
+  
+             const {COD_CATEGORIA} = req.params;
+             const consulta ='call TIENDASM.SELECT_CAT_ARTICULO(?);';
+            mysqlConnection.query(consulta, [COD_CATEGORIA], (error, results) => {
+               if (error) throw error;
+               if (results.length > 0) {
+                   res.json(results);
+                  } else {
+                   res.send("No pudo traer ningun dato de la BD");
+                  }
+              });
+          }  catch (error) {
+            console.log(error);
+          }
+      }
+     
+  });        
+  
 });
+
+
+
 
  //POST  INSERTAR CATEGORIA     BUENOOOO!!!
 
@@ -101,7 +131,7 @@ function verifyToken(req, res, next){
               } else {
                 const { NOM_CATEGORIA, DESCRIPCION, FEC_REGISTRO}= req.body;
                 console.log(req.body)
-                    const sql =` call INSERTAR_CAT_ARTICULO (?, ?, ? );`;
+                    const sql =` call TIENDASM.INSERTAR_CAT_ARTICULO (?, ?, ? );`;
                     //const sql= "call INSERTAR_CAT_ARTICULO (?, ?, ? ); " ;
                     mysqlConnection.query( sql,[NOM_CATEGORIA,DESCRIPCION, FEC_REGISTRO], (err, rows, fields) => {
                    if (!err) res.send("Datos agregados exitosamente");
@@ -116,7 +146,7 @@ function verifyToken(req, res, next){
 
 // DELETE CATEGORIA ARTICULO            BUENOOOOOO!!
 
-  router_i.delete("/DELETE_CAT_ART", verifyToken ,  (req, res) => {
+  /*router_i.delete("/DELETE_CAT_ART", verifyToken ,  (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -137,11 +167,32 @@ function verifyToken(req, res, next){
 
     });
 
+});*/
+
+router_i.delete("/DELETE_CAT_ART/:COD_CATEGORIA", verifyToken, (req, res) => {
+  jwt.verify(req.token, 'secretkey', (error, authData)=>{
+      if (error) {
+      res.send("ACCESO RESTRINGIDO)");
+      } else {
+         const {COD_CATEGORIA} = req.params;
+         const sql = 'call TIENDASM.DELETE_CAT_ART(?);;';
+
+          mysqlConnection.query(sql, [COD_CATEGORIA], (err, results)=>{
+             if (!err){
+                res.json({Status: 'CATEGORIA ELIMINADA CORRECTAMENTE'});
+              } else {
+                console.log(err);
+
+              }
+
+          });
+      }
+  });  
 });
 
   // UPDATE CATEGORIA ARTICULO     BUENOOOO!
 
-router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
+/*router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -153,7 +204,7 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
               SET @NOM_CATEGORIA=?;
               SET @DESCRIPCION=?;
               SET @FEC_REGISTRO=?;
-              CALL UPDATE_CAT_ARTICULO( @COD_CATEGORIA, @NOM_CATEGORIA , @DESCRIPCION, @FEC_REGISTRO);`;
+              CALL TIENDASM.UPDATE_CAT_ARTICULO( @COD_CATEGORIA, @NOM_CATEGORIA , @DESCRIPCION, @FEC_REGISTRO);`;
             mysqlConnection.query(
                 sql, [COD_CATEGORIA, NOM_CATEGORIA, DESCRIPCION, FEC_REGISTRO ], (err, rows, fields) => {
               if (!err) res.send("Datos actualizados");
@@ -168,6 +219,30 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
 
     });
 
+});*/
+
+router_i.put("/UPDATE_CATEGORIA/:COD_CATEGORIA", verifyToken, (req, res) => {
+  jwt.verify(req.token, 'secretkey', (error, authData)=>{
+      if (error) {
+      res.send("ACCESO RESTRINGIDO)");
+      } else {
+          try{
+             const {NOM_CATEGORIA, DESCRIPCION, FEC_REGISTRO} = req.body;
+             const {COD_CATEGORIA} = req.params;
+             const query  = 'call TIENDASM.UPDATE_CAT_ARTICULO(?,?,?,?);';
+             mysqlConnection.query(query, [ COD_CATEGORIA, NOM_CATEGORIA, DESCRIPCION, FEC_REGISTRO], (err, rows, fields) => {
+                if (!err){
+                    res.json({Status: 'CATEGORIA ACTUALIZADA...'});
+                  } else {
+                     console.log(err); //"NO SE ENCONTRÓ NINGÚN DATO."
+                  }
+              });
+
+          }catch (error) {
+             console.log(error);
+          }
+      }
+  });  
 });
 
 //-------------------TBL: ARTICULOS, METODOS: MOSTRAR, SELECCIONAR, INSERTAR, ACTUALIZAR Y ELIMINAR 
@@ -179,7 +254,7 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
         } else {
-            mysqlConnection.query("call SELECT_ARTICULOS", (err, rows, fields) => {
+            mysqlConnection.query("call TIENDASM.SELECT_ARTICULOS", (err, rows, fields) => {
                 if (!err) res.send(rows[0]);
                 else console.log(err);
             });
@@ -189,7 +264,7 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
  });
 
  //SELECIONAR UN ARTICULO
-  router_i.get("/SELECT_ART" , verifyToken, (req, res) => {
+  /*router_i.get("/SELECT_ART" , verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
            res.send("ACCESO RESTRINGIDO)");
@@ -197,7 +272,7 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
            try {
         
             const { COD_ARTICULO } = req.body;
-            const consulta = `call SELECT_ARTICULO('${COD_ARTICULO}')`;
+            const consulta = `call TIENDASM.SELECT_ARTICULO('${COD_ARTICULO}')`;
             mysqlConnection.query(consulta, (error, results) => {
                 if (error) throw error;
                 if (results.length > 0) {
@@ -216,10 +291,40 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
     });
 
  
+});*/
+
+router_i.get("/SELECT_ART/:COD_ARTICULO", verifyToken, (req, res) =>{
+  jwt.verify(req.token, 'secretkey', (error, authData)=>{
+      if (error) {
+         res.send("ACCESO RESTRINGIDO)");
+      } else {
+
+        try {
+  
+             const {COD_ARTICULO} = req.params;
+             const consulta ='call TIENDASM.SELECT_ARTICULO(?);';
+            mysqlConnection.query(consulta, [COD_ARTICULO], (error, results) => {
+               if (error) throw error;
+               if (results.length > 0) {
+                   res.json(results);
+                  } else {
+                   res.send("No pudo traer ningun dato de la BD");
+                  }
+              });
+          }  catch (error) {
+            console.log(error);
+          }
+      }
+     
+  });        
+  
 });
+
+
+
   //INSERTAR UN ARTICULO
 
-    router_i.post("/INSERT_ARTICULO", verifyToken , (req,res)=>{
+    /*router_i.post("/INSERT_ARTICULO", verifyToken , (req,res)=>{
         jwt.verify(req.token, 'secretkey', (error, authData)=>{
             if (error) {
               res.send("ACCESO RESTRINGIDO)");
@@ -227,7 +332,7 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
                   const { COD_CATEGORIA, NOM_ART, PREC_COMPRA, PREC_VENTA,
                     DESCRIPCION, EXISTENCIAS, ESTADO, FEC_MODIFICACION}= req.body;
                   console.log(req.body)
-                      const sql =` call INSERTAR_ARTICULO (?, ?, ? , ?, ?, ?, ?, ?);`;
+                      const sql =` call TIENDASM.INSERTAR_ARTICULO (?, ?, ? , ?, ?, ?, ?, ?);`;
                       mysqlConnection.query( sql,[COD_CATEGORIA, NOM_ART, PREC_COMPRA, PREC_VENTA,
                         DESCRIPCION, EXISTENCIAS, ESTADO, FEC_MODIFICACION], (err, rows, fields) => {
                      if (!err) res.send("Datos agregados exitosamente");
@@ -238,13 +343,37 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
     
         }); 
     
-    });
+    });*/
+
+
+    router_i.post("/INSERT_ARTICULO", verifyToken , (req, res) => {
+      jwt.verify(req.token, 'secretkey', (error, authData)=>{
+          if (error) {
+            res.send("ACCESO RESTRINGIDO)");
+          } else {
+            const { COD_CATEGORIA,NOM_ART,PREC_COMPRA,PREC_VENTA,DESCRIPCION,EXISTENCIAS,ESTADO }   = req.body;
+            console.log(req.body)
+            const query ='call TIENDASM.INSERTAR_ARTICULO(?,?,?,?,?,?,?);';
+              mysqlConnection.query(query, [COD_CATEGORIA,NOM_ART,PREC_COMPRA,PREC_VENTA,DESCRIPCION,EXISTENCIAS,ESTADO  ],(err, rows, fields)=> {
+  
+                  if (!err){
+                    res.json({status:'Datos insertados correctamente'});
+                  }else{ 
+                   console.log(err)
+                  }
+  
+              });
+          }
+  
+      });         
+  
+  });
 
  //ELIMINAR UN ARTICULO
 
  // DELETE UN ARTICULO                   BUENOOOOO!
 
-  router_i.delete("/DELETE_ART", verifyToken ,  (req, res) => {
+ /* router_i.delete("/DELETE_ART", verifyToken ,  (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -265,11 +394,33 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
 
     });
 
+});*/
+
+router_i.delete("/DELETE_ART/:COD_ARTICULO", verifyToken, (req, res) => {
+  jwt.verify(req.token, 'secretkey', (error, authData)=>{
+      if (error) {
+      res.send("ACCESO RESTRINGIDO)");
+      } else {
+         const {COD_ARTICULO} = req.params;
+         const sql = 'call TIENDASM.DELETE_ARTICULO(?);';
+
+          mysqlConnection.query(sql, [COD_ARTICULO], (err, results)=>{
+             if (!err){
+                res.json({Status: 'ARTICULO ELIMINADA CORRECTAMENTE'});
+              } else {
+                console.log(err);
+
+              }
+
+          });
+      }
+  });  
 });
+
 
    // UPDATE  ARTICULO     BUENOOOO!!!
 
-  router_i.put("/UPDATE_ART", verifyToken, (req, res) => {
+ /* router_i.put("/UPDATE_ART", verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -305,8 +456,39 @@ router_i.put("/UPDATE_CATEGORIA", verifyToken, (req, res) => {
 
     });
 
+});*/
+
+
+
+//UPDATE DE LA TABLA REPORTE GENERAL CON TOKEN
+router_i.put("/UPDATE_ART/:PI_COD_ARTICULO", verifyToken, (req, res) => {
+  jwt.verify(req.token, 'secretkey', (error, authData)=>{
+      if (error) {
+      res.send("ACCESO RESTRINGIDO)");
+      } else {
+       try{
+            const{ PI_COD_CATEGORIA,PV_NOM_ART,PF_PREC_COMPRA,PF_PREC_VENTA,PV_DESCRIPCION,PI_EXISTENCIAS,PB_ESTADO} = req.body;
+            const {PI_COD_ARTICULO} = req.params;
+            const query  = 'call TIENDASM.UPDATE_ARTICULO(?,?,?,?,?,?,?,?);';
+            mysqlConnection.query(query, [PI_COD_ARTICULO, PI_COD_CATEGORIA,PV_NOM_ART,PF_PREC_COMPRA,PF_PREC_VENTA,PV_DESCRIPCION,PI_EXISTENCIAS,PB_ESTADO   ] , (err, rows, fields) => {
+                if (!err){
+                   res.json({Status: 'USUARIO ACTUALIZADO'});
+                  } else{
+                    console.log(error);//("NO SE ENCONTRÓ NINGÚN DATO.");
+                  }
+              });
+
+          }catch (error){ 
+          console.log(error);
+          }
+      }
+  });
+
 });
 
+
+
+//PI_COD_ARTICULO,PI_COD_CATEGORIA,PV_NOM_ART,PF_PREC_COMPRA,PF_PREC_VENTA,PV_DESCRIPCION,PI_EXISTENCIAS,PB_ESTADO,PF_FECH_MOD
 
 //module.exports = router;
 module.exports = router_i;

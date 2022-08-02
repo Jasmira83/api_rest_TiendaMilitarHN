@@ -117,7 +117,7 @@ router_c.put("/ActualizarCompra/:PI_COD_COMPRA", verifyToken, (req, res) => {
               const query  = 'call TIENDASM.UPDATE_COMPRAS(?, ?, ?, ?, ?, ?, ?, ?, ?);';
               mysqlConnection.query(query, [PI_COD_COMPRA,PI_COD_PROVEEDOR, PI_COD_ARTICULO, PI_NUM_FACTURA, PD_FECHA, PI_COD_TER_PAGO, PI_CANTIDAD,PI_COS_UNITARIO, PI_TOT_COMPRA], (err, rows, fields) => {
                    if (!err){
-                     res.json({Status: 'USUARIO ACTUALIZADO...'});
+                     res.json({Status: 'COMPRA ACTUALIZADO...'});
                     } else {
                       console.log(err); //"NO SE ENCONTRÓ NINGÚN DATO."
                     }
@@ -135,13 +135,13 @@ router_c.put("/ActualizarCompra/:PI_COD_COMPRA", verifyToken, (req, res) => {
 
 
 // ELIMINAR COMPRA CON EL MÉTODO DELETE CON TOKEN
-router_c.delete("EliminarCompra/:COD_COMPRA", verifyToken ,  (req, res) => {
+router_c.delete("/EliminarCompra/:COD_COMPRA", verifyToken ,  (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
         } else {
            const {COD_COMPRA} = req.params;
-           const sql = 'CALL TIENDASM.DELETE_COMPRAS (?)';
+           const sql = 'call TIENDASM.DELETE_COMPRAS(?);';
   
            mysqlConnection.query(sql, [COD_COMPRA], (err, results)=>{
               if (!err){
@@ -193,7 +193,7 @@ router_c.get("/SelecTerPago/:COD_TER_PAGO", verifyToken , (req, res) => {
             try {
         
              const { COD_TER_PAGO} = req.params;
-             const consulta = 'call TIENDASM.SELECT_COMPRAS(?)';
+             const consulta = 'call TIENDASM.SELECT_TERMINOS_PAGOS_COMP(?);';
              mysqlConnection.query(consulta, [ COD_TER_PAGO], (error, results) => {
                    if (error) throw error;
                        if (results.length > 0) {
@@ -237,15 +237,15 @@ router_c.post("/pagoscompra",verifyToken , (req,res)=>{
 });
 
 //UPDATE DE LA TABLA TERMINOS DE COMPRAS CON TOKEN
-router_c.put("/:TER_PAGOS_COMP", verifyToken, (req, res) => {
+router_c.put("/ACTUALIZARPAGOSCOMP/:TER_PAGOS_COMP", verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
         } else {
             try{
-             const {PV_DESCRIPCION} = req.body;
+             const {PV_DESCRIPCION} = req.params;
              const {PV_NOMBRE} = req.params;
-             const query  = 'call TIENDASM.UPDATE_TER_PAGOS_COMP(?, ?);';
+             const query  = 'call TIENDASM.UPDATE_MET_PAGO(?,?);';
              mysqlConnection.query(query, [PV_NOMBRE, PV_DESCRIPCION], (err, rows, fields) => {
                   if (!err){
                        res.json({Status: 'TERMINO PAGO DE COMPRA ACTUALIZADO...'});
@@ -263,7 +263,7 @@ router_c.put("/:TER_PAGOS_COMP", verifyToken, (req, res) => {
 
 
 // DELETE DE LA TABLA TERMINOS DE COMPRAS CON TOKEN 
-router_c.delete("/:COD_TER_PAGO", verifyToken , (req, res) => {
+router_c.delete("/ELIMINARCOPAGO/:COD_TER_PAGO", verifyToken , (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
@@ -323,7 +323,7 @@ router_c.get("/SelectOrdenCompra/:COD_ORDEN_COMP", verifyToken , (req, res) => {
           try {
         
                const {COD_ORDEN_COMP} = req.params;
-               const consulta = 'call TIENDASM.SELECT_COMPRAS(?);';
+               const consulta = 'call TIENDASM.SELECT_ORDENES_COMP(?);';
                 mysqlConnection.query(consulta, [COD_ORDEN_COMP], (error, results) => {
                   if (error) throw error;
                        if (results.length > 0) {
@@ -530,7 +530,7 @@ router_c.delete("/EliminarDevoluCompra/:COD_DEVOLUCION_COMPRA", verifyToken, (re
         res.send("ACCESO RESTRINGIDO)");
         } else {
            const {COD_DEVOLUCION_COMPRA} = req.params;
-           const sql = 'CALL TIENDASM.DELETE_COMPRAS (?);';
+           const sql = 'call TIENDASM.DELETE_DEVOLUCIONES_COMP(?);';
   
            mysqlConnection.query(sql, [COD_DEVOLUCION_COMPRA], (err, results)=>{
               if (!err){
@@ -636,7 +636,7 @@ router_c.put("/ActualizarFactCompra/:PI_COD_ARCH_FACT_COMPRA", verifyToken, (req
             try{
                const {PI_COD_ORDEN_COMP, PI_COD_COMPRA, PD_FEC_INGRESO,PV_TIPO_COMPRA,PV_ESTADO,PV_FACT_FISICA} = req.body;
                const {PI_COD_ARCH_FACT_COMPRA} = req.params;
-               const query  = 'call TIENDASM.UPDATE_COMPRAS(?, ?, ?, ?, ?, ?, ?, ?, ?);';
+               const query  = 'call TIENDASM.UPDATE_FACTURAS_COMPRAS(?,?,?,?,?,?,?);';
                mysqlConnection.query(query, [PI_COD_ARCH_FACT_COMPRA,PI_COD_ORDEN_COMP, PI_COD_COMPRA, PD_FEC_INGRESO,PV_TIPO_COMPRA,PV_ESTADO,PV_FACT_FISICA], (err, rows, fields) => {
                   if (!err){
                       res.json({Status: 'FACTURA COMPRA ACTUALIZADA...'});
@@ -655,15 +655,15 @@ router_c.put("/ActualizarFactCompra/:PI_COD_ARCH_FACT_COMPRA", verifyToken, (req
 
 
   // ELIMINAR FACTURA COMPRA CON EL MÉTODO DELETE
-router_c.delete("EliminarFactCompra/:COD_ARCH_FACT_COMPRA", verifyToken, (req, res) => {
+router_c.delete("/EliminarFactCompra/:COD_ARCH_FACT_COMPRA", verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (error, authData)=>{
         if (error) {
         res.send("ACCESO RESTRINGIDO)");
         } else {
-           const {COD_COMPRA} = req.params;
+           const {COD_ARCH_FACT_COMPRA} = req.params;
            const sql = 'call TIENDASM.DELETE_FACTURAS_COMP(?);';
   
-            mysqlConnection.query(sql, [COD_COMPRA], (err, results)=>{
+            mysqlConnection.query(sql, [COD_ARCH_FACT_COMPRA], (err, results)=>{
                if (!err){
                   res.json({Status: 'FACTURA COMPRA ELIMINADA CORRECTAMENTE'});
                 } else {
